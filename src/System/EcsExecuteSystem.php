@@ -2,7 +2,9 @@
 
 namespace Invariance\Datapunk\Ecs\System;
 
+use Invariance\Datapunk\Ecs\EcsContext;
+
 interface EcsExecuteSystem extends EcsSystem
 {
-    public function execute(): void;
+    public function execute(EcsContext $context): void;
 }

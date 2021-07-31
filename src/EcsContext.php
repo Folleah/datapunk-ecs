@@ -2,6 +2,7 @@
 
 namespace Invariance\Datapunk\Ecs;
 
+use Invariance\Datapunk\Ecs\Exception\EcsException;
 use Invariance\Datapunk\Ecs\Filter\EcsFilteredResult;
 
 class EcsContext
@@ -19,8 +20,12 @@ class EcsContext
     /** @var EcsFilteredResult[] */
     private array $cachedFilters = [];
 
-    public function __construct(EcsConfig $config = null)
+    private object $sharedStateInstance;
+
+    public function __construct(object $sharedState = null, EcsConfig $config = null)
     {
+        $this->sharedStateInstance = $sharedState;
+
         if ($config === null) {
             $config = new EcsConfig();
         }
@@ -33,7 +38,7 @@ class EcsContext
     /**
      * Make new Entity
      */
-    public function makeEntity(): EcsEntity
+    public function createEntity(): EcsEntity
     {
         $freeEntity = !$this->freeEntities->isEmpty()
             ? $this->freeEntities->pop()
@@ -56,7 +61,7 @@ class EcsContext
     public function getEntityData(int $idx): EcsEntityData
     {
         if ($idx < 0 || $idx >= $this->entitiesCount) {
-            throw new \Exception('Invalid entity id.');
+            throw new EcsException('Invalid entity id.');
         }
         return $this->entitiesPool[$idx];
     }
@@ -68,7 +73,7 @@ class EcsContext
         }
 
         if (!class_exists($componentName)) {
-            throw new \Exception('Invalid component classname.');
+            throw new EcsException('Invalid component classname.');
         }
 
         $this->componentsPools[$componentName] = $pool = new EcsComponentsPool($this->config->componentsPoolCacheSize);
@@ -77,10 +82,7 @@ class EcsContext
     }
 
     /**
-     * (FOR INTERNAL USE ONLY) Get filtered entities with attached components
-     *
      * @param string[] $componentNames
-     * @return EcsFilteredResult
      */
     public function filter(array $componentNames): EcsFilteredResult
     {
@@ -95,6 +97,11 @@ class EcsContext
         foreach ($entityData->getComponents() as $cName => $cIdx) {
             $filter->add($entityIdx, $cIdx, $this->componentsPools[$cName]->get($cIdx));
         }
+    }
+
+    public function getSharedState(): object
+    {
+        return $this->sharedStateInstance;
     }
 
     private function getFilter(string $filterName): EcsFilteredResult

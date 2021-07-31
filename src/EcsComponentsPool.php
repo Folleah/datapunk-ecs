@@ -2,6 +2,8 @@
 
 namespace Invariance\Datapunk\Ecs;
 
+use Invariance\Datapunk\Ecs\Exception\EcsException;
+
 class EcsComponentsPool
 {
     private int $componentsCount = 0;
@@ -26,7 +28,7 @@ class EcsComponentsPool
     public function get(int $idx): EcsComponent
     {
         if ($idx < 0 || $idx >= $this->componentsCount) {
-            throw new \Exception('Invalid pool component id.');
+            throw new EcsException('Invalid pool component id.');
         }
         return $this->components[$idx];
     }
@@ -34,7 +36,7 @@ class EcsComponentsPool
     public function set(int $idx, EcsComponent $component): void
     {
         if ($idx < 0 || $idx > $this->componentsCount) {
-            throw new \Exception('Invalid pool component id.');
+            throw new EcsException('Invalid pool component id.');
         }
 
         $this->components[$idx] = $component;
